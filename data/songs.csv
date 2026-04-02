@@ -1,0 +1,21 @@
+id,title,artist,genre,mood,energy,tempo_bpm,valence,danceability,acousticness
+1,Sunrise City,Neon Echo,pop,happy,0.82,118,0.84,0.79,0.18
+2,Midnight Coding,LoRoom,lofi,chill,0.42,78,0.56,0.62,0.71
+3,Storm Runner,Voltline,rock,intense,0.91,152,0.48,0.66,0.10
+4,Library Rain,Paper Lanterns,lofi,chill,0.35,72,0.60,0.58,0.86
+5,Gym Hero,Max Pulse,pop,intense,0.93,132,0.77,0.88,0.05
+6,Spacewalk Thoughts,Orbit Bloom,ambient,chill,0.28,60,0.65,0.41,0.92
+7,Coffee Shop Stories,Slow Stereo,jazz,relaxed,0.37,90,0.71,0.54,0.89
+8,Night Drive Loop,Neon Echo,synthwave,moody,0.75,110,0.49,0.73,0.22
+9,Focus Flow,LoRoom,lofi,focused,0.40,80,0.59,0.60,0.78
+10,Rooftop Lights,Indigo Parade,indie pop,happy,0.76,124,0.81,0.82,0.35
+11,Golden Era,Crate Digger,hip-hop,nostalgic,0.68,95,0.62,0.80,0.15
+12,Moonlight Study,Ivory Keys,classical,peaceful,0.18,54,0.55,0.22,0.97
+13,Velvet Nights,Sable Monroe,r&b,romantic,0.55,88,0.72,0.74,0.30
+14,Iron Curtain,Warhead,metal,angry,0.98,180,0.22,0.50,0.04
+15,Old Dirt Road,The Hollow Pines,folk,melancholic,0.25,68,0.35,0.38,0.93
+16,Drop Zone,Pulse Engine,edm,euphoric,0.95,140,0.88,0.95,0.03
+17,Porch Swing Days,Dusty Reel,country,nostalgic,0.45,98,0.68,0.60,0.75
+18,Broken Hallelujah,Clara Voss,soul,sad,0.38,72,0.28,0.42,0.58
+19,Island Breeze,Tide & Root,reggae,peaceful,0.32,82,0.76,0.65,0.68
+20,Empty Glass Blues,Hound & Rye,blues,melancholic,0.30,76,0.32,0.44,0.82

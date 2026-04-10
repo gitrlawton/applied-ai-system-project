@@ -146,3 +146,81 @@ sunday_morning = {
     "target_tempo_bpm":    70,
     "target_danceability": 0.38,
 }
+
+# ── Adversarial / Edge-Case Profiles ──────────────────────────────────────────
+#
+# These profiles are designed to stress-test the scoring logic by supplying
+# contradictory, impossible, or extreme preference combinations.  Run each one
+# and observe whether the results match intuition or reveal unexpected behavior.
+
+# Edge Case 1: Energy-Sad Clash
+# Contradictory preferences — high energy (0.92) paired with mood="sad".
+# Only one sad song exists (Broken Hallelujah, soul/sad) and it has energy=0.38.
+# Question: does the genre+mood double-match still float it to #1 despite the
+# massive energy penalty, or does a wrong-mood high-energy song outscore it?
+energy_sad_clash = {
+    "genre":               "soul",
+    "mood":                "sad",
+    "target_energy":       0.92,
+    "target_valence":      0.20,
+    "target_acousticness": 0.40,
+    "target_tempo_bpm":    130,
+    "target_danceability": 0.75,
+}
+
+# Edge Case 2: Impossible Combo
+# No classical/angry song exists in the catalog — both categorical bonuses are
+# guaranteed zeros for every song.  The entire ranking collapses to numeric-only,
+# so the winner is whichever song has the closest energy/valence/tempo profile.
+impossible_combo = {
+    "genre":               "classical",
+    "mood":                "angry",
+    "target_energy":       0.85,
+    "target_valence":      0.30,
+    "target_acousticness": 0.20,
+    "target_tempo_bpm":    160,
+    "target_danceability": 0.70,
+}
+
+# Edge Case 3: Lofi Numbers, Metal Label
+# All numeric targets sit squarely in lofi territory (low energy, slow BPM,
+# high acousticness) but genre="metal".  Iron Curtain is the only metal song
+# and it is a near-perfect numeric opposite.  Does the 3.0 genre weight still
+# drag it to #1, or do the lofi songs' numeric scores overcome the mismatch?
+lofi_numbers_metal_label = {
+    "genre":               "metal",
+    "mood":                "intense",
+    "target_energy":       0.40,
+    "target_valence":      0.58,
+    "target_acousticness": 0.80,
+    "target_tempo_bpm":    75,
+    "target_danceability": 0.58,
+}
+
+# Edge Case 4: Flat Midpoint
+# Every numeric target is at the exact midpoint of its 0-1 range.  No song is
+# a strong match or a strong miss — tests whether the system produces a coherent
+# ranking or a near-tie cluster.  Only one jazz/relaxed song exists.
+flat_midpoint = {
+    "genre":               "jazz",
+    "mood":                "relaxed",
+    "target_energy":       0.50,
+    "target_valence":      0.50,
+    "target_acousticness": 0.50,
+    "target_tempo_bpm":    117,
+    "target_danceability": 0.50,
+}
+
+# Edge Case 5: Lone Wolf Genre
+# Only one blues song exists in the catalog (Empty Glass Blues).  The genre
+# bonus guarantees it a 3.0 head start, but the remaining four recommendations
+# must be filled by genre-mismatch songs ranked on numeric similarity alone.
+lone_wolf_genre = {
+    "genre":               "blues",
+    "mood":                "melancholic",
+    "target_energy":       0.30,
+    "target_valence":      0.32,
+    "target_acousticness": 0.82,
+    "target_tempo_bpm":    76,
+    "target_danceability": 0.44,
+}

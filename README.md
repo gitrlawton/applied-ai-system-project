@@ -134,6 +134,28 @@ You can add more tests in `tests/test_recommender.py`.
 
 ---
 
+## Sample Output
+
+![CLI output showing top 5 recommendations for the pop/happy profile](public/Capture_CLI_Verification_Phase_3_Step_4.PNG)
+
+---
+
+## Adversarial Profile Stress Test
+
+![CLI output showing top 5 results across all five edge-case profiles](public/Capture_CLI_Stress_Test_Verification_Phase_4_Step_1.png)
+
+**Energy-Sad Clash** — Broken Hallelujah still lands #1 at 10.43 despite a brutal energy penalty. The combined 5.0 points from genre+mood was too large to overcome even with terrible numeric fit.
+
+**Impossible Combo** — Iron Curtain (metal/angry) takes #1. It couldn't match the classical genre, but it was the only song with `mood="angry"`, so its 2.0 mood bonus put it ahead of every other song competing on numerics alone. Moonlight Study (the one classical song) barely squeaks into #5 — its genre match was wiped out by terrible numeric alignment.
+
+**Lofi Numbers, Metal Label** — The most revealing result. Iron Curtain is nowhere in the top 5. The 3.0 genre bonus wasn't enough to save it because its numerics were the polar opposite of the targets. Lofi songs took the top 3 on pure numeric closeness alone — the genre weight lost.
+
+**Flat Midpoint** — Coffee Shop Stories dominates at 11.42. Being the only jazz/relaxed song meant a guaranteed 5.0 categorical head start that the mid-range numerics couldn't overcome.
+
+**Lone Wolf Genre** — Empty Glass Blues scores a perfect 13.0/13.0. The profile was tuned directly against its values, confirming the math works correctly end-to-end.
+
+---
+
 ## Experiments You Tried
 
 Use this section to document the experiments you ran. For example:

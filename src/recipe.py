@@ -121,7 +121,20 @@ gym_session = {
     "target_danceability": 0.70,
 }
 
-# Profile C: Sunday morning wind-down
+# Profile C: Upbeat pop / feel-good
+# Expected top results: pop, indie pop — high valence, mid-high energy, moderate acousticness.
+# Expected low results: metal, ambient, classical — wrong genre, wrong energy, wrong vibe.
+pop_happy = {
+    "genre":               "pop",
+    "mood":                "happy",
+    "target_energy":       0.80,
+    "target_valence":      0.82,
+    "target_acousticness": 0.20,
+    "target_tempo_bpm":    120,
+    "target_danceability": 0.80,
+}
+
+# Profile D: Sunday morning wind-down
 # Expected top results: folk, classical, reggae — very acoustic, low tempo, peaceful.
 # Expected low results: EDM, synthwave, hip-hop — electronic texture breaks every axis.
 sunday_morning = {

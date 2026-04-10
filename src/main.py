@@ -9,28 +9,44 @@ You will implement the functions in recommender.py:
 - recommend_songs
 """
 
-from recommender import load_songs, recommend_songs
-from recipe import late_night_study, gym_session, sunday_morning
+from .recommender import load_songs, recommend_songs
+from .recipe import pop_happy, late_night_study, gym_session, sunday_morning
 
 
 def main() -> None:
     songs = load_songs("data/songs.csv")
 
-    # Swap to gym_session or sunday_morning to test a different profile
-    user_prefs = late_night_study
+    # Swap to late_night_study, gym_session, or sunday_morning to test other profiles
+    user_prefs = pop_happy
+    k = 5
 
-    recommendations = recommend_songs(user_prefs, songs, k=5)
+    recommendations = recommend_songs(user_prefs, songs, k=k)
 
-    print(f"\nActive profile: genre={user_prefs['genre']!r}, "
-          f"mood={user_prefs['mood']!r}, "
-          f"energy={user_prefs['target_energy']}\n")
-    print("Top recommendations:\n")
-    for rec in recommendations:
-        # Each item is (song_dict, score, explanation)
-        song, score, explanation = rec
-        print(f"{song['title']} - Score: {score:.2f}")
-        print(f"Because: {explanation}")
+    W = 60
+    heavy = "=" * W
+    light = "-" * W
+
+    print()
+    print(heavy)
+    print(f"  Music Recommender  |  Top {k} Results")
+    print(heavy)
+    print(f"  Profile : genre={user_prefs['genre']!r}"
+          f"  |  mood={user_prefs['mood']!r}"
+          f"  |  energy={user_prefs['target_energy']}")
+    print(light)
+
+    for rank, (song, score, explanation) in enumerate(recommendations, start=1):
+        reasons = explanation.split(", ")
         print()
+        print(f"  #{rank}")
+        print(f"       Song Title        : {song['title']}")
+        print(f"       Artist            : {song['artist']}  |  {song['genre']} / {song['mood']}")
+        print(f"       Score             : {score:.2f} / 13.0")
+        print(f"       Reasons for Score :")
+        for reason in reasons:
+            print(f"           {reason}")
+        print()
+        print(light)
 
 
 if __name__ == "__main__":

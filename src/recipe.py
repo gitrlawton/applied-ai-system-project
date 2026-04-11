@@ -78,9 +78,9 @@ danceability = 1.0
 # ── Weights ───────────────────────────────────────────────────────────────────
 
 WEIGHTS = {
-    "genre":        3.0,   # categorical — match or no match
+    "genre":        1.5,   # categorical — match or no match  [×0.5 weight shift]
     "mood":         2.0,   # categorical — match or no match
-    "energy":       2.5,   # numeric closeness, 0-1 scale
+    "energy":       5.0,   # numeric closeness, 0-1 scale  [×2 weight shift]
     "valence":      2.0,   # numeric closeness, 0-1 scale
     "acousticness": 1.5,   # numeric closeness, 0-1 scale
     "tempo_bpm":    1.0,   # numeric closeness, normalized before use

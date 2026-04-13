@@ -34,6 +34,8 @@ Real-world recommenders like Spotify or YouTube use two main strategies: **colla
 
 Each `Song` object stores the following attributes:
 
+**Core features**
+
 | Feature                 | Type        | Role in scoring                                            |
 | ----------------------- | ----------- | ---------------------------------------------------------- |
 | `genre`                 | categorical | Highest-weight match — penalizes catalog misses heavily    |
@@ -42,20 +44,40 @@ Each `Song` object stores the following attributes:
 | `valence`               | float (0–1) | Musical positivity — separates bright from dark/moody      |
 | `acousticness`          | float (0–1) | Texture preference; organic vs. electronic feel            |
 | `tempo_bpm`             | float       | Secondary rhythm signal; normalized before scoring         |
-| `danceability`          | float (0–1) | Lowest weight; partially redundant with energy             |
+| `danceability`          | float (0–1) | Partially redundant with energy; low weight                |
 | `id`, `title`, `artist` | metadata    | Display only — not used in scoring                         |
+
+**Advanced features** *(Challenge 1)*
+
+| Feature            | Type        | Role in scoring                                                        |
+| ------------------ | ----------- | ---------------------------------------------------------------------- |
+| `popularity`       | int (0–100) | Normalized to 0–1; penalizes mainstream vs. niche preference gaps      |
+| `release_decade`   | int         | Era preference; normalized 1960–2020 before differencing               |
+| `liveness`         | float (0–1) | Studio polish vs. raw live recording feel                              |
+| `instrumentalness` | float (0–1) | Vocal presence; 0 = fully vocal, 1 = fully instrumental                |
+| `speechiness`      | float (0–1) | Spoken word content; separates rap/podcast-style tracks from pure music |
 
 ### UserProfile Features
 
 Each `UserProfile` stores:
 
-- `favorite_genre` — the genre the system treats as the user's primary identity
-- `favorite_mood` — preferred emotional context (e.g., chill, intense, focused)
+**Core preferences**
+
+- `genre` — the genre the system treats as the user's primary identity
+- `mood` — preferred emotional context (e.g., chill, intense, focused)
 - `target_energy` — desired intensity level on a 0–1 scale
 - `target_valence` — preferred emotional brightness on a 0–1 scale
 - `target_acousticness` — texture preference; 1.0 = fully acoustic, 0.0 = fully electronic
 - `target_tempo_bpm` — preferred beats per minute; normalized to 0–1 before scoring
 - `target_danceability` — preferred rhythmic drive on a 0–1 scale
+
+**Advanced preferences** *(Challenge 1)*
+
+- `preferred_popularity` — target popularity on a 0–100 scale; normalized before scoring
+- `target_release_decade` — preferred release era (e.g., 1990, 2020); normalized 1960–2020
+- `target_liveness` — preference for studio-polished vs. live recording feel on a 0–1 scale
+- `target_instrumentalness` — preference for vocal vs. instrumental tracks on a 0–1 scale
+- `target_speechiness` — preference for spoken word content on a 0–1 scale
 
 Profiles are defined in `src/recipe.py` and imported into `src/main.py`.
 
@@ -66,33 +88,55 @@ Profiles are defined in `src/recipe.py` and imported into `src/main.py`.
 The system scores every song in the catalog against the active user profile, then returns the top K by score. The full formula for a single song is:
 
 ```
-score = 3.0 × (song.genre == user.genre)
+score = 1.5 × (song.genre == user.genre)
       + 2.0 × (song.mood  == user.mood)
-      + 2.5 × (1 − |song.energy       − user.target_energy|)
-      + 2.0 × (1 − |song.valence      − user.target_valence|)
-      + 1.5 × (1 − |song.acousticness − user.target_acousticness|)
-      + 1.0 × (1 − |norm(song.bpm)    − norm(user.target_tempo_bpm)|)
-      + 1.0 × (1 − |song.danceability − user.target_danceability|)
+      + 5.0 × (1 − |song.energy            − user.target_energy|)
+      + 2.0 × (1 − |song.valence           − user.target_valence|)
+      + 1.5 × (1 − |song.acousticness      − user.target_acousticness|)
+      + 1.0 × (1 − |norm(song.bpm)         − norm(user.target_tempo_bpm)|)
+      + 1.0 × (1 − |song.danceability      − user.target_danceability|)
+      + 0.5 × (1 − |song.popularity/100    − user.preferred_popularity/100|)
+      + 0.8 × (1 − |norm(song.decade)      − norm(user.target_release_decade)|)
+      + 0.7 × (1 − |song.liveness          − user.target_liveness|)
+      + 1.0 × (1 − |song.instrumentalness  − user.target_instrumentalness|)
+      + 0.5 × (1 − |song.speechiness       − user.target_speechiness|)
 
-Maximum possible score = 13.0
-Tempo is normalized: norm(bpm) = (bpm − 54) / (152 − 54)
+Maximum possible score = 17.5
+Tempo normalized:  norm(bpm)    = (bpm    − 54)   / (180 − 54)
+Decade normalized: norm(decade) = (decade − 1960) / (2020 − 1960)
 ```
 
 **Weight rationale:**
 
-| Feature        | Weight | Why this value                                                                                                                                                                                                                        |
-| -------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `genre`        | 3.0    | Hardest filter. With 10 genres in the catalog, a genre mismatch signals a fundamental incompatibility in production style and instrumentation. A wrong-genre song must never outscore a right-genre song on numeric similarity alone. |
-| `energy`       | 2.5    | The single most discriminating numeric axis. It cleanly separates the catalog from 0.18 (classical) to 0.98 (metal). A 0.5-unit miss costs 1.25 points.                                                                               |
-| `mood`         | 2.0    | Important but partially redundant with energy and valence. Raised above the common starting point of 1.0 so it acts as a meaningful tiebreaker, not just a footnote.                                                                  |
-| `valence`      | 2.0    | Emotional brightness is independent of energy. A sad soul ballad and a chill lofi track can share similar energy but feel completely different.                                                                                       |
-| `acousticness` | 1.5    | Texture preference is real but secondary — a lofi listener tolerates mild electronic production far more than a genre mismatch.                                                                                                       |
-| `tempo_bpm`    | 1.0    | Useful secondary signal, but the same BPM can feel very different across genres. Genre already handles that context.                                                                                                                  |
-| `danceability` | 1.0    | Most correlated with energy in this catalog. Low weight prevents double-counting intensity.                                                                                                                                           |
+| Feature            | Weight | Why this value                                                                                               |
+| ------------------ | ------ | ------------------------------------------------------------------------------------------------------------ |
+| `energy`           | 5.0    | The dominant numeric axis — cleanly separates the catalog from 0.18 (classical) to 0.98 (metal).            |
+| `mood`             | 2.0    | Categorical tiebreaker; partially redundant with energy but captures emotional nuance the numbers miss.      |
+| `valence`          | 2.0    | Emotional brightness is independent of energy. A sad ballad and a chill lofi track can share similar energy. |
+| `genre`            | 1.5    | Reduced after weight-shift experiment; energy now leads, genre acts as a secondary filter.                   |
+| `acousticness`     | 1.5    | Texture preference is real but secondary to intensity and mood.                                              |
+| `instrumentalness` | 1.0    | Vocal vs. instrumental is a meaningful listening preference; weighted equally with tempo and danceability.   |
+| `tempo_bpm`        | 1.0    | Useful signal but context-dependent; genre already handles much of the tempo-range distinction.              |
+| `danceability`     | 1.0    | Most correlated with energy in this catalog. Low weight prevents double-counting intensity.                  |
+| `release_decade`   | 0.8    | Era preference is real but secondary — a 2020 lofi fan can still enjoy a 2010 lofi track.                   |
+| `liveness`         | 0.7    | Studio vs. live feel is a niche preference; meaningful but low-stakes for most listeners.                    |
+| `popularity`       | 0.5    | Mainstream vs. niche preference is a soft signal; rarely the deciding factor.                                |
+| `speechiness`      | 0.5    | Relevant mainly for distinguishing rap and podcast-style tracks; low weight for general use.                 |
 
-**Ranking rule:** Score all 20 songs, sort by score descending, return the top K. Ties are broken by catalog order.
+**Ranking rule:** Score all 20 songs, sort by score descending, apply diversity re-ranking, return the top K.
 
-See `src/recipe.py` for the `WEIGHTS` dictionary and `flowchart.md` for a visual diagram of the full data flow.
+**Diversity re-ranking** *(Challenge 3)*: After sorting, a greedy selection pass applies a score multiplier to any song whose artist (×0.60) or genre (×0.80) is already represented in the selected results. This prevents the top 5 from being dominated by a single artist or genre without altering the displayed scores.
+
+**Ranking strategies** *(Challenge 2)*: The active strategy can be swapped in one line in `src/main.py`. Each strategy is a full weight override defined in `src/strategies.py`:
+
+| Strategy        | What it emphasizes                                      |
+| --------------- | ------------------------------------------------------- |
+| `genre_first`   | Genre weight at 6.0 — genre match dominates             |
+| `mood_first`    | Mood (6.0) + valence (4.0) + liveness (2.5) — feel-led |
+| `energy_focused`| Energy (8.0) + tempo (3.5) + danceability (3.5) — intensity-led |
+| `era_locked`    | Release decade at 6.0 — era match dominates             |
+
+See `src/recipe.py` for the `WEIGHTS` dictionary and `src/strategies.py` for all four strategies.
 
 ---
 
@@ -102,11 +146,11 @@ See `src/recipe.py` for the `WEIGHTS` dictionary and `flowchart.md` for a visual
 
 - **Mood rigidity.** Mood matching is binary: "chill" and "relaxed" score the same as "chill" vs. "metal" — zero points either way. In practice these moods are close neighbors, but the system treats them as equally wrong. A mood similarity gradient (rather than exact match) would fix this.
 
-- **Cold-start on user preferences.** The system requires the user to explicitly specify all seven preference values. A real user rarely thinks in terms of `target_acousticness = 0.80`. Any inaccurate self-reported preference directly degrades recommendation quality.
+- **Cold-start on user preferences.** The system requires the user to explicitly specify all twelve preference values. A real user rarely thinks in terms of `target_acousticness = 0.80` or `target_instrumentalness = 0.05`. Any inaccurate self-reported preference directly degrades recommendation quality.
 
 - **Catalog bias.** The 20-song catalog was hand-curated and reflects a narrow slice of genres and moods. Genres with multiple entries (lofi has 3) get more chances to score well than genres with one entry (blues, reggae, soul). This inflates recall for over-represented genres.
 
-- **No diversity enforcement.** The ranking rule returns the top K by score alone. For a strong lofi profile all five recommendations could be lofi songs — correct by the math, but potentially monotonous in practice.
+- **Diversity enforcement is greedy, not optimal.** The diversity re-ranking pass penalizes repeated artists and genres but uses a greedy one-pass approach. It guarantees no exact duplicates in the top K but cannot guarantee the globally most diverse result set.
 
 ---
 

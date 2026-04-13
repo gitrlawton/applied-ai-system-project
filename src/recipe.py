@@ -78,20 +78,37 @@ danceability = 1.0
 # ── Weights ───────────────────────────────────────────────────────────────────
 
 WEIGHTS = {
-    "genre":        1.5,   # categorical — match or no match  [×0.5 weight shift]
-    "mood":         2.0,   # categorical — match or no match
-    "energy":       5.0,   # numeric closeness, 0-1 scale  [×2 weight shift]
-    "valence":      2.0,   # numeric closeness, 0-1 scale
-    "acousticness": 1.5,   # numeric closeness, 0-1 scale
-    "tempo_bpm":    1.0,   # numeric closeness, normalized before use
-    "danceability": 1.0,   # numeric closeness, 0-1 scale
+    "genre":            1.5,   # categorical — match or no match  [×0.5 weight shift]
+    "mood":             2.0,   # categorical — match or no match
+    "energy":           5.0,   # numeric closeness, 0-1 scale  [×2 weight shift]
+    "valence":          2.0,   # numeric closeness, 0-1 scale
+    "acousticness":     1.5,   # numeric closeness, 0-1 scale
+    "tempo_bpm":        1.0,   # numeric closeness, normalized before use
+    "danceability":     1.0,   # numeric closeness, 0-1 scale
+    # ── New features ──────────────────────────────────────────────────────────
+    "popularity":       0.5,   # numeric closeness, normalized 0-100 → 0-1
+    "release_decade":   0.8,   # numeric closeness, normalized 1960-2020 → 0-1
+    "liveness":         0.7,   # numeric closeness, 0-1 scale
+    "instrumentalness": 1.0,   # numeric closeness, 0-1 scale
+    "speechiness":      0.5,   # numeric closeness, 0-1 scale
 }
 
-MAX_SCORE = sum(WEIGHTS.values())   # 13.0
+MAX_SCORE = sum(WEIGHTS.values())   # 17.5
 
 # Tempo normalization bounds — set from the full catalog range (54–180 BPM)
 TEMPO_MIN = 54
 TEMPO_MAX = 180
+
+# Decade normalization bounds — set from oldest to newest catalog era (1960–2020)
+DECADE_MIN = 1960
+DECADE_MAX = 2020
+
+# Diversity penalty multipliers — applied during greedy top-k selection when
+# an artist or genre is already represented in the selected results.
+# 0.60 = 40% score cut for a repeated artist (strong — same artist is very redundant)
+# 0.80 = 20% score cut for a repeated genre  (mild  — some genre overlap is acceptable)
+ARTIST_PENALTY = 0.60
+GENRE_PENALTY  = 0.80
 
 # ── Taste Profiles ────────────────────────────────────────────────────────────
 
@@ -99,52 +116,72 @@ TEMPO_MAX = 180
 # Expected top results: lofi, classical, ambient — low energy, high acousticness.
 # Expected low results: metal, EDM, rock — mismatches on every axis.
 late_night_study = {
-    "genre":               "lofi",
-    "mood":                "focused",
-    "target_energy":       0.38,
-    "target_valence":      0.58,
-    "target_acousticness": 0.80,
-    "target_tempo_bpm":    78,
-    "target_danceability": 0.58,
+    "genre":                    "lofi",
+    "mood":                     "focused",
+    "target_energy":            0.38,
+    "target_valence":           0.58,
+    "target_acousticness":      0.80,
+    "target_tempo_bpm":         78,
+    "target_danceability":      0.58,
+    "preferred_popularity":     62,
+    "target_release_decade":    2020,
+    "target_liveness":          0.05,
+    "target_instrumentalness":  0.80,
+    "target_speechiness":       0.03,
 }
 
 # Profile B: Gym / workout
 # Expected top results: metal, EDM, rock — extreme energy, fast tempo, low acousticness.
 # Expected low results: classical, lofi, ambient — wrong genre, wrong energy, wrong texture.
 gym_session = {
-    "genre":               "rock",
-    "mood":                "intense",
-    "target_energy":       0.95,
-    "target_valence":      0.50,
-    "target_acousticness": 0.05,
-    "target_tempo_bpm":    155,
-    "target_danceability": 0.70,
+    "genre":                    "rock",
+    "mood":                     "intense",
+    "target_energy":            0.95,
+    "target_valence":           0.50,
+    "target_acousticness":      0.05,
+    "target_tempo_bpm":         155,
+    "target_danceability":      0.70,
+    "preferred_popularity":     72,
+    "target_release_decade":    2000,
+    "target_liveness":          0.18,
+    "target_instrumentalness":  0.08,
+    "target_speechiness":       0.06,
 }
 
 # Profile C: Upbeat pop / feel-good
 # Expected top results: pop, indie pop — high valence, mid-high energy, moderate acousticness.
 # Expected low results: metal, ambient, classical — wrong genre, wrong energy, wrong vibe.
 pop_happy = {
-    "genre":               "pop",
-    "mood":                "happy",
-    "target_energy":       0.80,
-    "target_valence":      0.82,
-    "target_acousticness": 0.20,
-    "target_tempo_bpm":    120,
-    "target_danceability": 0.80,
+    "genre":                    "pop",
+    "mood":                     "happy",
+    "target_energy":            0.80,
+    "target_valence":           0.82,
+    "target_acousticness":      0.20,
+    "target_tempo_bpm":         120,
+    "target_danceability":      0.80,
+    "preferred_popularity":     80,
+    "target_release_decade":    2020,
+    "target_liveness":          0.08,
+    "target_instrumentalness":  0.03,
+    "target_speechiness":       0.05,
 }
 
 # Profile D: Sunday morning wind-down
 # Expected top results: folk, classical, reggae — very acoustic, low tempo, peaceful.
 # Expected low results: EDM, synthwave, hip-hop — electronic texture breaks every axis.
 sunday_morning = {
-    "genre":               "folk",
-    "mood":                "peaceful",
-    "target_energy":       0.27,
-    "target_valence":      0.72,
-    "target_acousticness": 0.90,
-    "target_tempo_bpm":    70,
-    "target_danceability": 0.38,
+    "genre":                    "folk",
+    "mood":                     "peaceful",
+    "target_energy":            0.27,
+    "target_valence":           0.72,
+    "target_acousticness":      0.90,
+    "target_tempo_bpm":         70,
+    "target_danceability":      0.38,
+    "preferred_popularity":     40,
+    "target_release_decade":    1990,
+    "target_liveness":          0.40,
+    "target_instrumentalness":  0.15,
+    "target_speechiness":       0.08,
 }
 
 # ── Adversarial / Edge-Case Profiles ──────────────────────────────────────────
@@ -154,73 +191,81 @@ sunday_morning = {
 # and observe whether the results match intuition or reveal unexpected behavior.
 
 # Edge Case 1: Energy-Sad Clash
-# Contradictory preferences — high energy (0.92) paired with mood="sad".
-# Only one sad song exists (Broken Hallelujah, soul/sad) and it has energy=0.38.
-# Question: does the genre+mood double-match still float it to #1 despite the
-# massive energy penalty, or does a wrong-mood high-energy song outscore it?
 energy_sad_clash = {
-    "genre":               "soul",
-    "mood":                "sad",
-    "target_energy":       0.92,
-    "target_valence":      0.20,
-    "target_acousticness": 0.40,
-    "target_tempo_bpm":    130,
-    "target_danceability": 0.75,
+    "genre":                    "soul",
+    "mood":                     "sad",
+    "target_energy":            0.92,
+    "target_valence":           0.20,
+    "target_acousticness":      0.40,
+    "target_tempo_bpm":         130,
+    "target_danceability":      0.75,
+    "preferred_popularity":     55,
+    "target_release_decade":    2010,
+    "target_liveness":          0.25,
+    "target_instrumentalness":  0.05,
+    "target_speechiness":       0.08,
 }
 
 # Edge Case 2: Impossible Combo
-# No classical/angry song exists in the catalog — both categorical bonuses are
-# guaranteed zeros for every song.  The entire ranking collapses to numeric-only,
-# so the winner is whichever song has the closest energy/valence/tempo profile.
 impossible_combo = {
-    "genre":               "classical",
-    "mood":                "angry",
-    "target_energy":       0.85,
-    "target_valence":      0.30,
-    "target_acousticness": 0.20,
-    "target_tempo_bpm":    160,
-    "target_danceability": 0.70,
+    "genre":                    "classical",
+    "mood":                     "angry",
+    "target_energy":            0.85,
+    "target_valence":           0.30,
+    "target_acousticness":      0.20,
+    "target_tempo_bpm":         160,
+    "target_danceability":      0.70,
+    "preferred_popularity":     50,
+    "target_release_decade":    1970,
+    "target_liveness":          0.20,
+    "target_instrumentalness":  0.80,
+    "target_speechiness":       0.03,
 }
 
 # Edge Case 3: Lofi Numbers, Metal Label
-# All numeric targets sit squarely in lofi territory (low energy, slow BPM,
-# high acousticness) but genre="metal".  Iron Curtain is the only metal song
-# and it is a near-perfect numeric opposite.  Does the 3.0 genre weight still
-# drag it to #1, or do the lofi songs' numeric scores overcome the mismatch?
 lofi_numbers_metal_label = {
-    "genre":               "metal",
-    "mood":                "intense",
-    "target_energy":       0.40,
-    "target_valence":      0.58,
-    "target_acousticness": 0.80,
-    "target_tempo_bpm":    75,
-    "target_danceability": 0.58,
+    "genre":                    "metal",
+    "mood":                     "intense",
+    "target_energy":            0.40,
+    "target_valence":           0.58,
+    "target_acousticness":      0.80,
+    "target_tempo_bpm":         75,
+    "target_danceability":      0.58,
+    "preferred_popularity":     58,
+    "target_release_decade":    2020,
+    "target_liveness":          0.05,
+    "target_instrumentalness":  0.82,
+    "target_speechiness":       0.03,
 }
 
 # Edge Case 4: Flat Midpoint
-# Every numeric target is at the exact midpoint of its 0-1 range.  No song is
-# a strong match or a strong miss — tests whether the system produces a coherent
-# ranking or a near-tie cluster.  Only one jazz/relaxed song exists.
 flat_midpoint = {
-    "genre":               "jazz",
-    "mood":                "relaxed",
-    "target_energy":       0.50,
-    "target_valence":      0.50,
-    "target_acousticness": 0.50,
-    "target_tempo_bpm":    117,
-    "target_danceability": 0.50,
+    "genre":                    "jazz",
+    "mood":                     "relaxed",
+    "target_energy":            0.50,
+    "target_valence":           0.50,
+    "target_acousticness":      0.50,
+    "target_tempo_bpm":         117,
+    "target_danceability":      0.50,
+    "preferred_popularity":     50,
+    "target_release_decade":    1990,
+    "target_liveness":          0.50,
+    "target_instrumentalness":  0.50,
+    "target_speechiness":       0.50,
 }
 
 # Edge Case 5: Lone Wolf Genre
-# Only one blues song exists in the catalog (Empty Glass Blues).  The genre
-# bonus guarantees it a 3.0 head start, but the remaining four recommendations
-# must be filled by genre-mismatch songs ranked on numeric similarity alone.
 lone_wolf_genre = {
-    "genre":               "blues",
-    "mood":                "melancholic",
-    "target_energy":       0.30,
-    "target_valence":      0.32,
-    "target_acousticness": 0.82,
-    "target_tempo_bpm":    76,
-    "target_danceability": 0.44,
+    "genre":                    "blues",
+    "mood":                     "melancholic",
+    "target_energy":            0.30,
+    "target_valence":           0.32,
+    "target_acousticness":      0.82,
+    "target_tempo_bpm":         76,
+    "target_danceability":      0.44,
+    "preferred_popularity":     38,
+    "target_release_decade":    1970,
+    "target_liveness":          0.42,
+    "target_instrumentalness":  0.15,
+    "target_speechiness":       0.09,
 }

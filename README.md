@@ -23,16 +23,16 @@ Real-world recommenders like Spotify or YouTube use two main strategies: **colla
 
 Each `Song` object stores the following attributes:
 
-| Feature | Type | Role in scoring |
-|---|---|---|
-| `genre` | categorical | Highest-weight match — penalizes catalog misses heavily |
-| `mood` | categorical | Second categorical signal for emotional context |
-| `energy` | float (0–1) | Core numeric vibe driver; rewards closeness to user target |
-| `valence` | float (0–1) | Musical positivity — separates bright from dark/moody |
-| `acousticness` | float (0–1) | Texture preference; organic vs. electronic feel |
-| `tempo_bpm` | float | Secondary rhythm signal; normalized before scoring |
-| `danceability` | float (0–1) | Lowest weight; partially redundant with energy |
-| `id`, `title`, `artist` | metadata | Display only — not used in scoring |
+| Feature                 | Type        | Role in scoring                                            |
+| ----------------------- | ----------- | ---------------------------------------------------------- |
+| `genre`                 | categorical | Highest-weight match — penalizes catalog misses heavily    |
+| `mood`                  | categorical | Second categorical signal for emotional context            |
+| `energy`                | float (0–1) | Core numeric vibe driver; rewards closeness to user target |
+| `valence`               | float (0–1) | Musical positivity — separates bright from dark/moody      |
+| `acousticness`          | float (0–1) | Texture preference; organic vs. electronic feel            |
+| `tempo_bpm`             | float       | Secondary rhythm signal; normalized before scoring         |
+| `danceability`          | float (0–1) | Lowest weight; partially redundant with energy             |
+| `id`, `title`, `artist` | metadata    | Display only — not used in scoring                         |
 
 ### UserProfile Features
 
@@ -69,15 +69,15 @@ Tempo is normalized: norm(bpm) = (bpm − 54) / (152 − 54)
 
 **Weight rationale:**
 
-| Feature | Weight | Why this value |
-|---|---|---|
-| `genre` | 3.0 | Hardest filter. With 10 genres in the catalog, a genre mismatch signals a fundamental incompatibility in production style and instrumentation. A wrong-genre song must never outscore a right-genre song on numeric similarity alone. |
-| `energy` | 2.5 | The single most discriminating numeric axis. It cleanly separates the catalog from 0.18 (classical) to 0.98 (metal). A 0.5-unit miss costs 1.25 points. |
-| `mood` | 2.0 | Important but partially redundant with energy and valence. Raised above the common starting point of 1.0 so it acts as a meaningful tiebreaker, not just a footnote. |
-| `valence` | 2.0 | Emotional brightness is independent of energy. A sad soul ballad and a chill lofi track can share similar energy but feel completely different. |
-| `acousticness` | 1.5 | Texture preference is real but secondary — a lofi listener tolerates mild electronic production far more than a genre mismatch. |
-| `tempo_bpm` | 1.0 | Useful secondary signal, but the same BPM can feel very different across genres. Genre already handles that context. |
-| `danceability` | 1.0 | Most correlated with energy in this catalog. Low weight prevents double-counting intensity. |
+| Feature        | Weight | Why this value                                                                                                                                                                                                                        |
+| -------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `genre`        | 3.0    | Hardest filter. With 10 genres in the catalog, a genre mismatch signals a fundamental incompatibility in production style and instrumentation. A wrong-genre song must never outscore a right-genre song on numeric similarity alone. |
+| `energy`       | 2.5    | The single most discriminating numeric axis. It cleanly separates the catalog from 0.18 (classical) to 0.98 (metal). A 0.5-unit miss costs 1.25 points.                                                                               |
+| `mood`         | 2.0    | Important but partially redundant with energy and valence. Raised above the common starting point of 1.0 so it acts as a meaningful tiebreaker, not just a footnote.                                                                  |
+| `valence`      | 2.0    | Emotional brightness is independent of energy. A sad soul ballad and a chill lofi track can share similar energy but feel completely different.                                                                                       |
+| `acousticness` | 1.5    | Texture preference is real but secondary — a lofi listener tolerates mild electronic production far more than a genre mismatch.                                                                                                       |
+| `tempo_bpm`    | 1.0    | Useful secondary signal, but the same BPM can feel very different across genres. Genre already handles that context.                                                                                                                  |
+| `danceability` | 1.0    | Most correlated with energy in this catalog. Low weight prevents double-counting intensity.                                                                                                                                           |
 
 **Ranking rule:** Score all 20 songs, sort by score descending, return the top K. Ties are broken by catalog order.
 
@@ -109,6 +109,8 @@ See `src/recipe.py` for the `WEIGHTS` dictionary and `flowchart.md` for a visual
    python -m venv .venv
    source .venv/bin/activate      # Mac or Linux
    .venv\Scripts\activate         # Windows
+
+   ```
 
 2. Install dependencies
 
@@ -191,12 +193,11 @@ Write 1 to 2 paragraphs here about what you learned:
 - about how recommenders turn data into predictions
 - about where bias or unfairness could show up in systems like this
 
-
 ---
 
 ## 7. `model_card_template.md`
 
-Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}  
+Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}
 
 ```markdown
 # 🎧 Model Card - Music Recommender Simulation
@@ -248,6 +249,7 @@ Describe your dataset.
 Where does your recommender work well
 
 You can think about:
+
 - Situations where the top results "felt right"
 - Particular user profiles it served well
 - Simplicity or transparency benefits
@@ -259,6 +261,7 @@ You can think about:
 Where does your recommender struggle
 
 Some prompts:
+
 - Does it ignore some genres or moods
 - Does it treat all users as if they have the same taste shape
 - Is it biased toward high energy or one genre by default
@@ -271,6 +274,7 @@ Some prompts:
 How did you check your system
 
 Examples:
+
 - You tried multiple user profiles and wrote down whether the results matched your expectations
 - You compared your simulation to what a real app like Spotify or YouTube tends to recommend
 - You wrote tests for your scoring logic
@@ -298,4 +302,4 @@ A few sentences about what you learned:
 - What surprised you about how your system behaved
 - How did building this change how you think about real music recommenders
 - Where do you think human judgment still matters, even if the model seems "smart"
-
+```

@@ -57,8 +57,8 @@ def load_songs(csv_path: str) -> List[Dict]:
     """
     import csv
 
-    int_fields = {"id", "popularity", "release_decade"}
-    float_fields = {"energy", "tempo_bpm", "valence", "danceability", "acousticness",
+    int_fields = {"popularity", "release_decade"}
+    float_fields = {"energy", "tempo", "valence", "danceability", "acousticness",
                     "liveness", "instrumentalness", "speechiness"}
 
     songs = []
@@ -134,7 +134,7 @@ def score_song(user_prefs: Dict, song: Dict, weights: Dict = None) -> Tuple[floa
     score += pts
     reasons.append(f"acousticness (+{pts:.2f})")
 
-    norm_song_tempo = (song["tempo_bpm"] - TEMPO_MIN) / (TEMPO_MAX - TEMPO_MIN)
+    norm_song_tempo = (song["tempo"] - TEMPO_MIN) / (TEMPO_MAX - TEMPO_MIN)
     norm_user_tempo = (user_prefs["target_tempo_bpm"] - TEMPO_MIN) / (TEMPO_MAX - TEMPO_MIN)
     pts = W["tempo_bpm"] * (1 - abs(norm_song_tempo - norm_user_tempo))
     score += pts

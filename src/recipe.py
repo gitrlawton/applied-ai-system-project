@@ -116,7 +116,7 @@ GENRE_PENALTY  = 0.80
 # Expected top results: lofi, classical, ambient — low energy, high acousticness.
 # Expected low results: metal, EDM, rock — mismatches on every axis.
 late_night_study = {
-    "genre":                    "lofi",
+    "genre":                    "piano",
     "mood":                     "focused",
     "target_energy":            0.38,
     "target_valence":           0.58,
@@ -193,7 +193,7 @@ sunday_morning = {
 # Edge Case 1: Energy-Sad Clash
 energy_sad_clash = {
     "genre":                    "soul",
-    "mood":                     "sad",
+    "mood":                     "melancholic",
     "target_energy":            0.92,
     "target_valence":           0.20,
     "target_acousticness":      0.40,
@@ -209,7 +209,7 @@ energy_sad_clash = {
 # Edge Case 2: Impossible Combo
 impossible_combo = {
     "genre":                    "classical",
-    "mood":                     "angry",
+    "mood":                     "focused",
     "target_energy":            0.85,
     "target_valence":           0.30,
     "target_acousticness":      0.20,

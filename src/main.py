@@ -36,7 +36,7 @@ high_energy_pop = {
 }
 
 chill_lofi = {
-    "genre":                    "lofi",
+    "genre":                    "chill",
     "mood":                     "chill",
     "target_energy":            0.38,
     "target_valence":           0.58,
@@ -158,7 +158,7 @@ def print_results(label: str, user_prefs: dict, recommendations: list, strategy=
 
 
 def main() -> None:
-    songs = load_songs("data/songs.csv")
+    songs = load_songs("data/spotify_data.csv")
     k = 5
 
     for label, user_prefs in PROFILES:

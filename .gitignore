@@ -16,3 +16,5 @@ venv/
 
 # Misc
 Brainstorm/
+data/spotify_1m_raw.csv
+.claude/

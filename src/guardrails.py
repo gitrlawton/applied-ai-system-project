@@ -1,3 +1,22 @@
+"""
+Guardrails — Input Validation for Recster
+==========================================
+
+Provides three things consumed by the rest of the system:
+
+  VALID_GENRES   — set of genre strings present in the catalog
+  VALID_MOODS    — set of mood strings present in the catalog
+  MusicProfile   — Pydantic model used by ai_profile_builder.py to force the
+                   LLM to return a structurally valid profile via
+                   llm.with_structured_output(MusicProfile)
+  validate_profile() — validates a plain profile dict before it reaches the
+                       scorer; raises ValueError on hard errors, logs warnings
+                       for contradictory-but-legal combinations
+
+VALID_GENRES and VALID_MOODS are derived at import time from the catalog CSV
+so they stay in sync automatically when build_catalog.py is re-run.
+"""
+
 import logging
 import pandas as pd
 from pathlib import Path
@@ -10,7 +29,9 @@ VALID_GENRES = set(_catalog["genre"].dropna().unique())
 VALID_MOODS  = set(_catalog["mood"].dropna().unique())
 
 
+# Pydantic model used by ai_profile_builder.py with llm.with_structured_output(MusicProfile).
 class MusicProfile(BaseModel):
+    """Structured music preference profile produced by the LLM profile builder."""
     genre:                   str   = Field(description="Must match a genre in the catalog")
     mood:                    str   = Field(description="Must match a mood in the catalog")
     target_energy:           float = Field(ge=0.0, le=1.0)
@@ -25,6 +46,10 @@ class MusicProfile(BaseModel):
     preferred_popularity:    int   = Field(ge=0, le=100)
 
 
+# Contradiction rules: Each entry is (cond_a, cond_b, message). Both conditions 
+# must match for a warning to fire. Conditions are plain dicts; callable values 
+# are treated as predicates over the corresponding profile field.
+# These log a warning but do NOT block — the profile is still passed through.
 CONTRADICTIONS = [
     (
         {"genre": "classical"},
@@ -45,6 +70,12 @@ CONTRADICTIONS = [
 
 
 def _matches(cond: dict, profile: dict) -> bool:
+    """Return True if every key in cond matches the corresponding profile value.
+
+    Callable values are treated as predicates; literal values require equality.
+    Avoids the vacuous-truth bug that arises from splitting callable and
+    non-callable checks into separate all() expressions joined by OR.
+    """
     for k, v in cond.items():
         val = profile.get(k, 0)
         if callable(v):
@@ -57,6 +88,22 @@ def _matches(cond: dict, profile: dict) -> bool:
 
 
 def validate_profile(profile: dict) -> dict:
+    """Validate a profile dict before it reaches the scoring layer.
+
+    Checks (in order):
+      1. All 12 required keys are present
+      2. genre and mood exist in the catalog
+      3. All float fields are within 0.0–1.0
+      4. target_tempo_bpm, target_release_decade, preferred_popularity are in range
+      5. No contradictory genre/mood/feature combinations (warning only)
+
+    Raises:
+        ValueError: if any hard validation check fails, with all errors joined
+                    into a single message so the caller sees everything at once.
+
+    Returns:
+        The original profile dict unchanged if all checks pass.
+    """
     errors   = []
     warnings = []
 

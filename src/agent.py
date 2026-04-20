@@ -37,7 +37,7 @@ from src.recommender import load_songs, recommend_songs
 load_dotenv()
 
 # temperature=0 keeps tool call ordering deterministic.
-_llm = ChatGroq(model="llama-3.1-8b-instant", api_key=os.getenv("GROQ_API_KEY"), temperature=0)
+_llm = ChatGroq(model="llama-3.3-70b-versatile", api_key=os.getenv("GROQ_API_KEY"), temperature=0)
 
 # All inter-tool data flows through these module-level caches.
 # Threading events let tools that run in parallel wait on each other safely.

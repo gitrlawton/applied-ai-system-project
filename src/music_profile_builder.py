@@ -1,6 +1,6 @@
 """
-AI Profile Builder — Natural Language to Music Profile
-=======================================================
+Music Profile Builder — Natural Language to Music Profile
+=========================================================
 
 Converts a plain-English description of music preferences into a structured
 MusicProfile dict using a Groq-hosted LLM (Llama 3) with structured output.
@@ -11,7 +11,7 @@ is built dynamically from VALID_GENRES and VALID_MOODS so it stays in sync
 with the catalog automatically when build_catalog.py is re-run.
 
 Public API:
-    build_profile(description: str) -> dict
+    build_music_profile(description: str) -> dict
 """
 
 import os
@@ -39,7 +39,7 @@ _llm = ChatGroq(model="llama-3.1-8b-instant", api_key=os.getenv("GROQ_API_KEY"))
 _structured_llm = _llm.with_structured_output(MusicProfile)
 
 
-def build_profile(description: str) -> dict:
+def build_music_profile(description: str) -> dict:
     """Convert a natural language music description into a structured profile dict.
 
     Invokes the Groq LLM with structured output constrained to MusicProfile.

@@ -6,10 +6,10 @@ Provides three things consumed by the rest of the system:
 
   VALID_GENRES   — set of genre strings present in the catalog
   VALID_MOODS    — set of mood strings present in the catalog
-  MusicProfile   — Pydantic model used by ai_profile_builder.py to force the
+  MusicProfile   — Pydantic model used by music_profile_builder.py to force the
                    LLM to return a structurally valid profile via
                    llm.with_structured_output(MusicProfile)
-  validate_profile() — validates a plain profile dict before it reaches the
+  validate_music_profile() — validates a plain profile dict before it reaches the
                        scorer; raises ValueError on hard errors, logs warnings
                        for contradictory-but-legal combinations
 
@@ -29,7 +29,7 @@ VALID_GENRES = set(_catalog["genre"].dropna().unique())
 VALID_MOODS  = set(_catalog["mood"].dropna().unique())
 
 
-# Pydantic model used by ai_profile_builder.py with llm.with_structured_output(MusicProfile).
+# Pydantic model used by music_profile_builder.py with llm.with_structured_output(MusicProfile).
 class MusicProfile(BaseModel):
     """Structured music preference profile produced by the LLM profile builder."""
     genre:                   str   = Field(description="Must match a genre in the catalog")
@@ -87,7 +87,7 @@ def _matches(cond: dict, profile: dict) -> bool:
     return True
 
 
-def validate_profile(profile: dict) -> dict:
+def validate_music_profile(music_profile: dict) -> dict:
     """Validate a profile dict before it reaches the scoring layer.
 
     Checks (in order):
@@ -114,13 +114,13 @@ def validate_profile(profile: dict) -> dict:
         "target_instrumentalness", "target_speechiness",
     ]
     for key in required:
-        if key not in profile:
+        if key not in music_profile:
             errors.append(f"Missing required field: {key}")
 
-    if profile.get("genre") not in VALID_GENRES:
-        errors.append(f"genre '{profile.get('genre')}' not in catalog")
-    if profile.get("mood") not in VALID_MOODS:
-        errors.append(f"mood '{profile.get('mood')}' not in catalog")
+    if music_profile.get("genre") not in VALID_GENRES:
+        errors.append(f"genre '{music_profile.get('genre')}' not in catalog")
+    if music_profile.get("mood") not in VALID_MOODS:
+        errors.append(f"mood '{music_profile.get('mood')}' not in catalog")
 
     float_fields = [
         "target_energy", "target_valence", "target_acousticness",
@@ -128,19 +128,19 @@ def validate_profile(profile: dict) -> dict:
         "target_instrumentalness", "target_speechiness",
     ]
     for field in float_fields:
-        val = profile.get(field)
+        val = music_profile.get(field)
         if val is not None and not (0.0 <= val <= 1.0):
             errors.append(f"{field} must be 0.0–1.0, got {val}")
 
-    if not (54 <= profile.get("target_tempo_bpm", 54) <= 180):
+    if not (54 <= music_profile.get("target_tempo_bpm", 54) <= 180):
         errors.append("target_tempo_bpm must be 54–180")
-    if not (1960 <= profile.get("target_release_decade", 1960) <= 2020):
+    if not (1960 <= music_profile.get("target_release_decade", 1960) <= 2020):
         errors.append("target_release_decade must be 1960–2020")
-    if not (0 <= profile.get("preferred_popularity", 0) <= 100):
+    if not (0 <= music_profile.get("preferred_popularity", 0) <= 100):
         errors.append("preferred_popularity must be 0–100")
 
     for cond_a, cond_b, message in CONTRADICTIONS:
-        if _matches(cond_a, profile) and _matches(cond_b, profile):
+        if _matches(cond_a, music_profile) and _matches(cond_b, music_profile):
             warnings.append(f"Contradictory combination: {message}")
 
     for w in warnings:
@@ -148,4 +148,4 @@ def validate_profile(profile: dict) -> dict:
     if errors:
         raise ValueError(f"Profile validation failed: {'; '.join(errors)}")
 
-    return profile
+    return music_profile

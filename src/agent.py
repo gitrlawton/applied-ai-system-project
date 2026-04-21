@@ -17,7 +17,8 @@ eliminating hallucination of inter-tool arguments entirely. Threading events
 coordinate tools that the LLM batches in parallel.
 
 Public API:
-    executor  — LangGraph agent; call executor.invoke({"messages": [("user", "...")]})
+    executor           — LangGraph agent; call executor.invoke({"messages": [("user", "...")]})
+    reset_agent_state() — clear all caches and events; call before each executor.invoke in Flask
 """
 
 import os
@@ -48,6 +49,21 @@ _last_recommendations: list = []
 _intent_ready = threading.Event()
 _music_profile_ready = threading.Event()
 _recommendations_ready = threading.Event()
+
+
+def reset_agent_state() -> None:
+    """Clear all inter-tool caches and reset threading events.
+
+    Must be called at the start of every Flask request to prevent state from
+    one request bleeding into the next.
+    """
+    global _last_intent, _last_music_profile, _last_recommendations
+    _last_intent = {}
+    _last_music_profile = {}
+    _last_recommendations.clear()
+    _intent_ready.clear()
+    _music_profile_ready.clear()
+    _recommendations_ready.clear()
 
 
 def _nearest_valid(value: str, valid_set: set) -> str:

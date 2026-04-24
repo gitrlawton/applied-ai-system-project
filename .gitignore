@@ -21,3 +21,7 @@ venv/
 Brainstorm/
 data/spotify_1m_raw.csv
 .claude/
+
+# Frontend
+node_modules/
+frontend/dist/

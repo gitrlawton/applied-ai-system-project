@@ -124,6 +124,11 @@ def get_recommendations(description: str) -> list:
     _recommendations_ready.clear()
     songs = load_songs("data/spotify_data.csv")
     results = recommend_songs(_last_music_profile, songs, k=5)
+    try:
+        from src.recipe import MAX_SCORE
+    except ImportError:
+        from recipe import MAX_SCORE
+
     _last_recommendations = [
         {
             "title": s["title"],
@@ -131,6 +136,17 @@ def get_recommendations(description: str) -> list:
             "genre": s["genre"],
             "mood": s["mood"],
             "score": round(sc, 2),
+            "max_score": MAX_SCORE,
+            "energy": s["energy"],
+            "valence": s["valence"],
+            "acousticness": s["acousticness"],
+            "tempo": s["tempo"],
+            "danceability": s["danceability"],
+            "popularity": s["popularity"],
+            "release_decade": s["release_decade"],
+            "liveness": s["liveness"],
+            "instrumentalness": s["instrumentalness"],
+            "speechiness": s["speechiness"],
         }
         for s, sc, _ in results
     ]

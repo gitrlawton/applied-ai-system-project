@@ -15,7 +15,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from langchain_core.messages import ToolMessage
 
-from src.agent import executor, reset_agent_state
+from src.agent import agent, reset_agent_state
 
 load_dotenv()
 
@@ -36,7 +36,7 @@ def recommend():
     reset_agent_state()
 
     try:
-        result = executor.invoke({"messages": [("user", description)]})
+        result = agent.invoke({"messages": [("user", description)]})
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     except Exception as e:

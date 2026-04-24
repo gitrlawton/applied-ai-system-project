@@ -17,8 +17,8 @@ eliminating hallucination of inter-tool arguments entirely. Threading events
 coordinate tools that the LLM batches in parallel.
 
 Public API:
-    executor           — LangGraph agent; call executor.invoke({"messages": [("user", "...")]})
-    reset_agent_state() — clear all caches and events; call before each executor.invoke in Flask
+    agent           — LangGraph agent; call agent.invoke({"messages": [("user", "...")]})
+    reset_agent_state() — clear all caches and events; call before each agent.invoke in Flask
 """
 
 import os
@@ -197,4 +197,4 @@ All tools take only the description string. Never pass profile dicts or result l
 
 _tools = [parse_intent, build_music_profile, get_recommendations, evaluate_results, refine_music_profile]
 
-executor = create_react_agent(_llm, _tools, prompt=_system_prompt)
+agent = create_react_agent(_llm, _tools, prompt=_system_prompt)

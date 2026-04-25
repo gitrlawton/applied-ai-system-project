@@ -31,10 +31,10 @@ def test_validate_music_profile_rejects_unknown_genre():
         validate_music_profile(music_profile)
 
 
-def test_recommendations_return_five_results():
+def test_recommendations_return_twenty_results():
     songs = load_songs("data/spotify_data.csv")
-    results = recommend_songs(late_night_study, songs, k=5)
-    assert len(results) == 5
+    results = recommend_songs(late_night_study, songs, k=20)
+    assert len(results) == 20
 
 
 def test_top_result_has_required_keys():

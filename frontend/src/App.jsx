@@ -31,7 +31,7 @@ export default function App() {
 
   return (
     <div style={{ display: "flex", justifyContent: "center", padding: 40 }}>
-      <Window style={{ width: 900 }}>
+      <Window style={{ width: "calc(100vw - 80px)" }}>
         <WindowHeader>Recster 1.0</WindowHeader>
         <WindowContent>
           <SearchPanel
@@ -43,7 +43,9 @@ export default function App() {
             loading={loading}
           />
           <Separator />
-          <ResultsTable results={results} />
+          <div style={{ overflowX: "auto" }}>
+            <ResultsTable results={results} />
+          </div>
           <Separator />
           <Frame variant="status" style={{ padding: "4px 8px" }}>
             {status}

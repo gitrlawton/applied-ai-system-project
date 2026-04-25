@@ -115,7 +115,7 @@ def build_music_profile(description: str) -> dict:
 
 @tool
 def get_recommendations(description: str) -> list:
-    """Score and rank all songs against the music profile for this description. Returns top 5."""
+    """Score and rank all songs against the music profile for this description. Returns top 20."""
     global _last_recommendations
     if not _last_music_profile:
         _music_profile_ready.wait(timeout=60)
@@ -123,7 +123,7 @@ def get_recommendations(description: str) -> list:
         return [{"error": "Profile not available. Call build_music_profile first."}]
     _recommendations_ready.clear()
     songs = load_songs("data/spotify_data.csv")
-    results = recommend_songs(_last_music_profile, songs, k=5)
+    results = recommend_songs(_last_music_profile, songs, k=20)
     try:
         from src.recipe import MAX_SCORE
     except ImportError:

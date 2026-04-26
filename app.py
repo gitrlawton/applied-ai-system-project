@@ -10,7 +10,7 @@ Usage:
 """
 
 import json
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response, stream_with_context
 from flask_cors import CORS
 from dotenv import load_dotenv
 from langchain_core.messages import ToolMessage
@@ -58,6 +58,37 @@ def recommend():
     steps = [{"step": msg.name, "output": msg.content} for msg in tool_messages]
 
     return jsonify({"recommendations": recommendations, "steps": steps})
+
+
+@app.route("/recommend/stream", methods=["POST"])
+def recommend_stream():
+    data = request.get_json(silent=True)
+    if not data or "description" not in data:
+        return jsonify({"error": "Request body must include a 'description' field."}), 400
+
+    description = data["description"].strip()
+    if not description:
+        return jsonify({"error": "'description' cannot be empty."}), 400
+
+    reset_agent_state()
+
+    def generate():
+        recommendations = []
+        for event in agent.stream({"messages": [("user", description)]}):
+            if "tools" in event:
+                for msg in event["tools"].get("messages", []):
+                    yield f"data: {json.dumps({'type': 'step', 'step': msg.name, 'output': msg.content})}\n\n"
+                    if msg.name == "get_recommendations":
+                        try:
+                            recs = json.loads(msg.content)
+                            if isinstance(recs, list) and recs and "error" not in recs[0]:
+                                recommendations = recs
+                        except (json.JSONDecodeError, IndexError):
+                            pass
+
+        yield f"data: {json.dumps({'type': 'done', 'recommendations': recommendations})}\n\n"
+
+    return Response(stream_with_context(generate()), mimetype="text/event-stream")
 
 
 if __name__ == "__main__":

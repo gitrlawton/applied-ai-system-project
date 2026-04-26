@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { TextInput, Button, GroupBox } from "react95";
+import { TextInput, Button, GroupBox, Checkbox } from "react95";
 
-export default function SearchPanel({ onSearch, onClear, loading }) {
+export default function SearchPanel({ onSearch, onClear, loading, showSteps, onToggleSteps }) {
   const [musicalVibeDescription, setMusicalVibeDescription] = useState("");
 
   return (
@@ -25,6 +25,11 @@ export default function SearchPanel({ onSearch, onClear, loading }) {
         >
           Clear
         </Button>
+        <Checkbox
+          checked={showSteps}
+          onChange={onToggleSteps}
+          label="Show Steps"
+        />
       </div>
     </GroupBox>
   );

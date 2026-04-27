@@ -16,7 +16,7 @@ def test_agent_runs_all_steps():
     assert "evaluate_results"    in step_names
 
 
-def test_agent_returns_five_recommendations():
+def test_agent_returns_twenty_recommendations():
     time.sleep(2)
     reset_agent_state()
     result = agent.invoke({"messages": [("user", "high energy workout music")]})
@@ -32,5 +32,5 @@ def test_agent_returns_five_recommendations():
             recommendations = json.loads(msg.content)
             break
 
-    assert len(recommendations) == 5
+    assert len(recommendations) == 20
     assert all("title" in rec and "score" in rec for rec in recommendations)

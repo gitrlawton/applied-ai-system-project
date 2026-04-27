@@ -1,12 +1,31 @@
 # Recster
 
-Recster is an AI-powered music recommendation system built on top of VibeMatch, a rules-based song scoring project I built in Module 3 (Weeks 6 and 7 of CodePath's AI110 - Foundations of AI Engineering course). The original system worked, but it had one big usability problem: to get a recommendation you had to manually fill in twelve numeric preference values like `target_acousticness = 0.80` or `target_instrumentalness = 0.05`, which no real person thinks about. Recster fixes that. You type a plain English description of what you want to hear (something like "chill music for studying late at night" or "high energy workout music") and a LangGraph agent powered by Llama 3.3 on Groq translates that into a structured music profile, runs it through the same content-based scoring engine, and surfaces the top 20 matching songs from a 2,460-song Spotify catalog. The results come back in a Napster-style Win95 window built with React95, showing each song's match score alongside progress bar visualizations of all eleven audio features the scoring engine considers. The whole pipeline is observable: every intermediate step the agent takes is captured and can be streamed live to the UI so you can see the system's reasoning before the results appear.
+Recster is an AI-powered music recommendation system built on top of VibeMatch, a rules-based song scoring project I built in Module 3 (Weeks 6 and 7 of CodePath's AI110 - Foundations of AI Engineering course). The original system worked, but it had one big usability problem: to get a recommendation you had to manually fill in twelve numeric preference values like `target_acousticness = 0.80` or `target_instrumentalness = 0.05`, which no real person thinks about.
+
+Recster fixes that. You type a plain English description of what you want to hear (something like "chill music for studying late at night" or "high energy workout music") and a LangGraph agent powered by Llama 3.3 on Groq translates that into a structured music profile, runs it through the same content-based scoring engine, and surfaces the top 20 matching songs from a 2,460-song Spotify catalog.
+
+The results come back in a Napster-style Win95 window built with React95, showing each song's match score alongside progress bar visualizations of all eleven audio features the scoring engine considers. The whole pipeline is observable: every intermediate step the agent takes is captured and can be streamed live to the UI so you can see the system's reasoning before the results appear.
 
 ---
 
-## Original Project — VibeMatch 1.0
+## Stretch Features
 
-VibeMatch 1.0 was a pure rule-based content-based music recommender — no LLM, no natural language input, nothing learned from data. The user defined a profile by manually specifying twelve preference values (genre, mood, and ten numeric targets like energy, valence, acousticness, and tempo), and the system scored every song in a hand-curated 20-song CSV catalog against that profile using a weighted formula. The formula gave each song points based on how closely its audio features matched the user's targets, with categorical features like genre and mood scoring and numeric features scoring on a sliding closeness scale. The top five results by total score were returned along with a per-feature score breakdown so you could see exactly why each song ranked where it did. The entire interface was terminal-based — profiles were hardcoded in Python and results printed to the console as a formatted table.
+- [x] **Agentic Workflow Enhancement**
+
+  - [x] Multi-step reasoning with tool-calls and a decision-making chain is implemented
+  - [x] The agent's intermediate steps are observable in output
+
+- [x] **Test Harness / Evaluation Script**
+  - [x] A script that evaluates the system on multiple predefined inputs is built and runs successfully
+  - [x] The script prints a summary of results (pass/fail score, confidence, or similar)
+
+---
+
+## Original Project: VibeMatch
+
+VibeMatch was a pure rule-based content-based music recommender — no LLM, no natural language input, nothing learned from data. The user defined a profile by manually specifying twelve preference values (genre, mood, and ten numeric targets like energy, valence, acousticness, and tempo), and the system scored every song in a hand-curated 20-song CSV catalog against that profile using a weighted formula.
+
+The formula gave each song points based on how closely its audio features matched the user's targets, with categorical features like genre and mood scoring and numeric features scoring on a sliding closeness scale. The top five results by total score were returned along with a per-feature score breakdown so you could see exactly why each song ranked where it did. The entire interface was terminal-based. Profiles were hardcoded in Python and results printed to the console as a formatted table.
 
 ---
 
@@ -37,6 +56,12 @@ flowchart TD
         T4 -- passed=false --> T5 --> T3
         T4 -- passed=true --> DONE[done]
     end
+
+    DB[(spotify_data.csv<br/>2,460 songs)] --> T3
+    T2 --> GR[guardrails.py<br/>validate_music_profile]
+    T5 --> GR
+    GR -- valid --> G
+    GR -- invalid --> ERR[ValueError → 400 response]
 
     G --> H{path}
     H -- invoke --> I[JSON: recommendations + steps array]
@@ -131,32 +156,30 @@ Navigate to `http://localhost:5173`. Enter a description of the type of music yo
 
 ## 5. Sample Interactions
 
-<!-- TODO: Replace placeholders with screenshots after running Phase 4B demo -->
-
 ### Input 1: "chill music for late night studying"
 
-<!-- [INSERT SCREENSHOT] -->
+![chill music for late night studying](assets/Capture_chill_music_for_late_night_studying.png)
 
-**Top result:** —
-**Score:** —
+**Top result:** Stockholm Sweetnin' — Scott Hamilton  
+**Score:** 14.64
 
 ---
 
 ### Input 2: "high energy workout music, something aggressive"
 
-<!-- [INSERT SCREENSHOT] -->
+![high energy workout music, something aggressive](assets/Capture_high_energy_workout_music_something_aggressive.png)
 
-**Top result:** —
-**Score:** —
+**Top result:** Forgiveness — Solomon Childs  
+**Score:** 14.52
 
 ---
 
 ### Input 3: "happy upbeat pop for a sunny morning"
 
-<!-- [INSERT SCREENSHOT] -->
+![happy upbeat pop for a sunny morning](assets/Capture_happy_upbeat_pop_for_a_sunny_morning.png)
 
-**Top result:** —
-**Score:** —
+**Top result:** Zero  
+**Score:** 16.12
 
 ---
 
@@ -184,17 +207,15 @@ ChatGPT and Gemini both show you what they're doing while they work ("Searching 
 
 ## 7. Testing Summary
 
-<!-- TODO: Run the two commands below and paste the output here before submitting -->
-<!-- Command 1: pytest tests/test_agent_tools.py tests/test_agent.py -v -->
-<!-- Command 2: python -m tests.eval_harness -->
-
 ### Unit and Integration Tests
 
-<!-- [INSERT pytest output here] -->
+![agent tools unit tests](assets/Capture_Test_Agent_Tools.PNG)
+
+![agent integration tests](assets/Capture_Test_Agent.PNG)
 
 ### Eval Harness
 
-<!-- [INSERT eval harness table here] -->
+![eval harness results](assets/Capture_Eval_Harness.PNG)
 
 The guardrail tests cover three failure categories: out-of-range float values (`target_energy: 1.8`), unknown genre strings (`"bossa nova"`), and missing required fields. All three raise `ValueError` with a descriptive message so the agent can catch and surface the error rather than silently passing a bad profile to the scorer. The eval harness runs all 8 profiles from `recipe.py` (three standard profiles and five adversarial ones) through the scoring engine against the full 2,460-song catalog and checks each top result against a hardcoded expected title. The adversarial profiles include contradictory genre/mood combinations and edge cases like a flat all-0.5 profile. The harness exits with a non-zero code if fewer than 6/8 profiles pass, making it usable in CI.
 

@@ -124,6 +124,7 @@ def get_recommendations(description: str) -> list:
     _recommendations_ready.clear()
     songs = load_songs("data/spotify_data.csv")
     results = recommend_songs(_last_music_profile, songs, k=20)
+    results.sort(key=lambda x: x[1], reverse=True)
     try:
         from src.recipe import MAX_SCORE
     except ImportError:

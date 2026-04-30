@@ -11,7 +11,7 @@ import {
 function MatchDot({ score, maxScore }) {
   const pct = score / maxScore;
   const color = pct >= 0.8 ? "green" : pct >= 0.55 ? "gold" : "red";
-  return <span style={{ color, fontSize: 18 }}>●</span>;
+  return <span style={{ color, fontSize: 18, position: "relative", top: "-2px" }}>●</span>;
 }
 
 export default function ResultsTable({ results }) {
@@ -40,39 +40,53 @@ export default function ResultsTable({ results }) {
       <TableBody>
         {results.map((song) => (
           <TableRow key={song.title}>
-            <TableDataCell>
+            <TableDataCell style={{ verticalAlign: "middle", textAlign: "center", lineHeight: "normal" }}>
               <MatchDot score={song.score} maxScore={maxScore} />
             </TableDataCell>
-            <TableDataCell style={{ maxWidth: 200, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <TableDataCell style={{ verticalAlign: "middle", lineHeight: "normal", maxWidth: 200, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {song.title} — {song.artist}
             </TableDataCell>
-            <TableDataCell>
+            <TableDataCell style={{ verticalAlign: "middle", lineHeight: "normal" }}>
               {song.score.toFixed(2)}
             </TableDataCell>
             <TableDataCell>
-              <ProgressBar value={Math.round(song.energy * 100)} />
+              <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+                <ProgressBar value={Math.round(song.energy * 100)} />
+              </div>
             </TableDataCell>
             <TableDataCell>
-              <ProgressBar value={Math.round(song.valence * 100)} />
+              <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+                <ProgressBar value={Math.round(song.valence * 100)} />
+              </div>
             </TableDataCell>
             <TableDataCell>
-              <ProgressBar value={Math.round(song.acousticness * 100)} />
+              <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+                <ProgressBar value={Math.round(song.acousticness * 100)} />
+              </div>
             </TableDataCell>
             <TableDataCell>
-              <ProgressBar value={Math.round(song.danceability * 100)} />
+              <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+                <ProgressBar value={Math.round(song.danceability * 100)} />
+              </div>
             </TableDataCell>
             <TableDataCell>
-              <ProgressBar value={Math.round(song.liveness * 100)} />
+              <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+                <ProgressBar value={Math.round(song.liveness * 100)} />
+              </div>
             </TableDataCell>
             <TableDataCell>
-              <ProgressBar value={Math.round(song.instrumentalness * 100)} />
+              <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+                <ProgressBar value={Math.round(song.instrumentalness * 100)} />
+              </div>
             </TableDataCell>
             <TableDataCell>
-              <ProgressBar value={Math.round(song.speechiness * 100)} />
+              <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+                <ProgressBar value={Math.round(song.speechiness * 100)} />
+              </div>
             </TableDataCell>
-            <TableDataCell style={{ textAlign: "center" }}>{Math.round(song.tempo)}</TableDataCell>
-            <TableDataCell style={{ textAlign: "center" }}>{song.release_decade}</TableDataCell>
-            <TableDataCell style={{ maxWidth: 140, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <TableDataCell style={{ verticalAlign: "middle", textAlign: "center", lineHeight: "normal" }}>{Math.round(song.tempo)}</TableDataCell>
+            <TableDataCell style={{ verticalAlign: "middle", textAlign: "center", lineHeight: "normal" }}>{song.release_decade}</TableDataCell>
+            <TableDataCell style={{ verticalAlign: "middle", lineHeight: "normal", maxWidth: 140, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {song.genre} / {song.mood}
             </TableDataCell>
           </TableRow>
